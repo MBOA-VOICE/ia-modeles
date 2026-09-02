@@ -1,0 +1,13 @@
+# Répartition des responsabilités dans le repo ia-modeles.
+# TODO: remplacer les placeholders par les vrais handles GitHub.
+
+# Modules PARTAGÉS
+/asr/            @joy-handle @samuela-handle
+/tts/            @joy-handle @samuela-handle
+/pronunciation/  @joy-handle @samuela-handle
+
+# Module PROPRE à mboa_voice
+/nmt/            @samuela-handle
+
+# Collecte de corpus : répartition détaillée dans README.md
+/data/           @joy-handle @samuela-handle

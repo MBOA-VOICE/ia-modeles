@@ -1,0 +1,36 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+.ipynb_checkpoints/
+
+# Poids de modèles — publier sur Hugging Face Hub, jamais dans Git
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.tflite
+*.h5
+*.pkl
+*.gguf
+
+# Corpus audio bruts — jamais dans Git (trop lourd)
+data/*/audio/
+data/*/raw/
+*.wav
+*.mp3
+*.flac
+*.ogg
+
+# Tracking / bundles
+wandb/
+mlruns/
+*.tar.gz
+*.zip
+
+.idea/
+.vscode/
