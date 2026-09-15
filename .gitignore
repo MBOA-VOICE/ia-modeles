@@ -21,10 +21,19 @@ venv/
 # Corpus audio bruts — jamais dans Git (trop lourd)
 data/*/audio/
 data/*/raw/
+data/*/jw_org/audio/
+data/_french/
 *.wav
 *.mp3
 *.flac
 *.ogg
+*.aac
+*.m4a
+
+# Brochures jw.org — EPUB/PDF trop lourds pour Git, re-téléchargeables
+data/*/jw_org/text/
+*.epub
+*.pdf
 
 # Tracking / bundles
 wandb/
