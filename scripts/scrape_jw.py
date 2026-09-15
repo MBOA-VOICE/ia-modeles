@@ -85,21 +85,31 @@ def iter_tracks(payload: dict):
                 yield t
 
 
-def download(url: str, dest: pathlib.Path, expected_md5: str | None) -> str:
+def download(url: str, dest: pathlib.Path, expected_md5: str | None,
+             attempts: int = 4) -> str:
     if dest.exists():
         if expected_md5 and hashlib.md5(dest.read_bytes()).hexdigest() == expected_md5:
             return "cached"
-        # taille non nulle, on suppose OK
         if not expected_md5 and dest.stat().st_size > 0:
             return "cached"
     dest.parent.mkdir(parents=True, exist_ok=True)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     tmp = dest.with_suffix(dest.suffix + ".part")
-    with urllib.request.urlopen(req, timeout=180) as r, tmp.open("wb") as f:
-        while chunk := r.read(1 << 16):
-            f.write(chunk)
-    tmp.rename(dest)
-    return "downloaded"
+    for i in range(attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r, tmp.open("wb") as f:
+                while chunk := r.read(1 << 16):
+                    f.write(chunk)
+            tmp.rename(dest)
+            return "downloaded" if i == 0 else f"downloaded (retry x{i})"
+        except (TimeoutError, urllib.error.URLError, ConnectionError) as e:
+            if i == attempts - 1:
+                print(f"    ! échec définitif après {attempts} tentatives : {e}")
+                return "failed"
+            wait = 2 ** i
+            print(f"    ! erreur {type(e).__name__}, retry dans {wait}s…")
+            time.sleep(wait)
+    return "failed"
 
 
 def process(data_dir: str, lang_jw: str, pub: str, fmts: list[str],
