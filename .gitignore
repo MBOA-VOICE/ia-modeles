@@ -41,5 +41,9 @@ mlruns/
 *.tar.gz
 *.zip
 
+# Fine-tuning : datasets préparés et checkpoints
+nmt/datasets/
+nmt/outputs/
+
 .idea/
 .vscode/
