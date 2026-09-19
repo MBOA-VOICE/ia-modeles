@@ -5,3 +5,4 @@ accelerate>=0.33
 sentencepiece
 sacrebleu
 torch
+torchao>=0.16
