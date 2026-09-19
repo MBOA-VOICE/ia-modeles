@@ -37,54 +37,51 @@ FR_LANG = "fra_Latn"
 
 
 def extend_tokenizer(tokenizer):
-    """Ajoute ewo_Latn comme token spécial et met à jour lang_code_to_id.
+    """Ajoute ewo_Latn comme token spécial.
 
-    Nécessaire car NLLB ne connaît pas l'ewondo. Sans cela, tokenizer.src_lang
-    = "ewo_Latn" lèverait une KeyError.
+    Nécessaire car NLLB ne connaît pas l'ewondo. On ne touche pas à
+    lang_code_to_id (supprimé dans transformers récent) : la préfixation
+    langue est faite manuellement dans make_preprocess.
     """
     existing = tokenizer.special_tokens_map.get("additional_special_tokens", []) or []
-    if NEW_LANG in existing:
-        return tokenizer
-
-    tokenizer.add_special_tokens(
-        {"additional_special_tokens": list(existing) + [NEW_LANG]}
-    )
-    new_id = tokenizer.convert_tokens_to_ids(NEW_LANG)
-    tokenizer.lang_code_to_id[NEW_LANG] = new_id
-    if hasattr(tokenizer, "id_to_lang_code"):
-        tokenizer.id_to_lang_code[new_id] = NEW_LANG
-    if hasattr(tokenizer, "fairseq_tokens_to_ids"):
-        tokenizer.fairseq_tokens_to_ids[NEW_LANG] = new_id
-    if hasattr(tokenizer, "fairseq_ids_to_tokens"):
-        tokenizer.fairseq_ids_to_tokens[new_id] = NEW_LANG
+    if NEW_LANG not in existing:
+        tokenizer.add_special_tokens(
+            {"additional_special_tokens": list(existing) + [NEW_LANG]}
+        )
     return tokenizer
 
 
 def make_preprocess(tokenizer, max_length: int):
-    def preprocess(batch):
-        directions = [random.choice(["fr2ewo", "ewo2fr"]) for _ in batch["fr"]]
-        srcs, tgts, src_langs, tgt_langs = [], [], [], []
-        for fr, ewo, d in zip(batch["fr"], batch["ewo"], directions):
-            if d == "fr2ewo":
-                srcs.append(fr); tgts.append(ewo)
-                src_langs.append(FR_LANG); tgt_langs.append(NEW_LANG)
-            else:
-                srcs.append(ewo); tgts.append(fr)
-                src_langs.append(NEW_LANG); tgt_langs.append(FR_LANG)
+    """Tokenize et préfixe manuellement la langue (format NLLB : [lang_id, ...tokens, eos]).
 
-        model_inputs = {"input_ids": [], "attention_mask": [], "labels": []}
-        for src, tgt, sl, tl in zip(srcs, tgts, src_langs, tgt_langs):
-            tokenizer.src_lang = sl
-            enc = tokenizer(
-                src, text_target=tgt, max_length=max_length,
-                truncation=True, padding=False,
+    On évite tokenizer.src_lang qui casse dès qu'on ajoute une langue neuve.
+    """
+    eos_id = tokenizer.eos_token_id
+    fr_id = tokenizer.convert_tokens_to_ids(FR_LANG)
+    new_id = tokenizer.convert_tokens_to_ids(NEW_LANG)
+
+    def preprocess(batch):
+        input_ids_l, attn_l, labels_l = [], [], []
+        for fr, ewo in zip(batch["fr"], batch["ewo"]):
+            if random.random() < 0.5:
+                src, tgt, sl, tl = fr, ewo, fr_id, new_id
+            else:
+                src, tgt, sl, tl = ewo, fr, new_id, fr_id
+
+            src_ids = tokenizer.encode(
+                src, add_special_tokens=False, truncation=True, max_length=max_length - 2
             )
-            enc["input_ids"][0] = tokenizer.convert_tokens_to_ids(sl)
-            enc["labels"][0] = tokenizer.convert_tokens_to_ids(tl)
-            model_inputs["input_ids"].append(enc["input_ids"])
-            model_inputs["attention_mask"].append(enc["attention_mask"])
-            model_inputs["labels"].append(enc["labels"])
-        return model_inputs
+            tgt_ids = tokenizer.encode(
+                tgt, add_special_tokens=False, truncation=True, max_length=max_length - 2
+            )
+            input_ids = [sl] + src_ids + [eos_id]
+            labels = [tl] + tgt_ids + [eos_id]
+
+            input_ids_l.append(input_ids)
+            attn_l.append([1] * len(input_ids))
+            labels_l.append(labels)
+
+        return {"input_ids": input_ids_l, "attention_mask": attn_l, "labels": labels_l}
     return preprocess
 
 
@@ -137,8 +134,7 @@ def main() -> None:
         save_strategy="epoch",
         save_total_limit=2,
         fp16=torch.cuda.is_available(),
-        predict_with_generate=True,
-        generation_max_length=args.max_length,
+        predict_with_generate=False,
         report_to=[],
     )
 
