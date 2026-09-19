@@ -42,16 +42,21 @@ def extend_tokenizer(tokenizer):
     Nécessaire car NLLB ne connaît pas l'ewondo. Sans cela, tokenizer.src_lang
     = "ewo_Latn" lèverait une KeyError.
     """
-    if NEW_LANG in tokenizer.additional_special_tokens:
+    existing = tokenizer.special_tokens_map.get("additional_special_tokens", []) or []
+    if NEW_LANG in existing:
         return tokenizer
 
     tokenizer.add_special_tokens(
-        {"additional_special_tokens": tokenizer.additional_special_tokens + [NEW_LANG]}
+        {"additional_special_tokens": list(existing) + [NEW_LANG]}
     )
     new_id = tokenizer.convert_tokens_to_ids(NEW_LANG)
     tokenizer.lang_code_to_id[NEW_LANG] = new_id
     if hasattr(tokenizer, "id_to_lang_code"):
         tokenizer.id_to_lang_code[new_id] = NEW_LANG
+    if hasattr(tokenizer, "fairseq_tokens_to_ids"):
+        tokenizer.fairseq_tokens_to_ids[NEW_LANG] = new_id
+    if hasattr(tokenizer, "fairseq_ids_to_tokens"):
+        tokenizer.fairseq_ids_to_tokens[new_id] = NEW_LANG
     return tokenizer
 
 
@@ -96,7 +101,7 @@ def main() -> None:
     ap.add_argument("--no-lora", action="store_true")
     args = ap.parse_args()
 
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
+    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, use_fast=False)
     tokenizer = extend_tokenizer(tokenizer)
 
     model = AutoModelForSeq2SeqLM.from_pretrained(BASE_MODEL)
