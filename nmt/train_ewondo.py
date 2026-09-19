@@ -128,13 +128,11 @@ def main() -> None:
         per_device_eval_batch_size=args.batch_size,
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.lr,
-        warmup_ratio=0.05,
+        warmup_steps=100,
         logging_steps=50,
-        eval_strategy="epoch",
         save_strategy="epoch",
         save_total_limit=2,
         fp16=torch.cuda.is_available(),
-        predict_with_generate=False,
         report_to=[],
     )
 
