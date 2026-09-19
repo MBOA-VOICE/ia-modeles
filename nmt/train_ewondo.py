@@ -141,7 +141,7 @@ def main() -> None:
         args=training_args,
         train_dataset=tokenized["train"],
         eval_dataset=tokenized["validation"],
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         data_collator=collator,
     )
     trainer.train()
