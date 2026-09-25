@@ -36,8 +36,8 @@ gratuites sont limitées en durée.
 
 | Langue    | Collectée par | Volume cible | État |
 |-----------|---------------|--------------|------|
-| Ewondo    | TODO          | TODO         | TODO |
+| Ewondo    | BOLO BOLO          | 2H audio+1000 paires fr->ewondo         | en cours |
 | Fulfulde  | TODO          | TODO         | TODO |
 | Douala    | TODO          | TODO         | TODO |
 | Fe'efe'e  | TODO          | TODO         | TODO |
-| Ghomala'  | TODO          | TODO         | TODO |
+| Ghomala'  | BOLO BOLO         | 2h audio+500 paires fr->ghomala         | non Commencé |

@@ -1,9 +1,9 @@
 # Corpus Ewondo
 
-- **Collectée par** : TODO
-- **Source(s)** : TODO (radios locales, corpus universitaires, enregistrements terrain…)
-- **Volume audio** : TODO (heures)
-- **Volume texte** : TODO (nombre de paires audio-texte)
+- **Collectée par** : BOLO BOLO
+- **Source(s)** : enregistrements terrains (radios locales, corpus universitaires, enregistrements terrain…)
+- **Volume audio** : 2 (heures)
+- **Volume texte** : 1000 (nombre de paires audio-texte)
 - **Format audio** : WAV mono 16 kHz (recommandé pour Whisper)
 - **Format transcription** : CSV `audio_path,transcript`
 
